@@ -27,7 +27,27 @@ function onEachFeature(feature, layer) {
         }
         layer.bindPopup(popupContent);
     };
-};   
+};
+
+//function to create proportional symobls
+function createPropSymobls(data, map) {
+    //create marker options
+    var geojsonMarkerOptions = {
+        radius: 8,
+        fillColor: "#ff7800",
+        color: "#000",
+        weight: 1,
+        opacity: 1,
+        fillOpacity: 0.8
+    };
+    
+    //create a Leaflet GeoJSON layer and add it to the map
+    L.geoJSON(data, {
+        pointToLayer: function (feature, latlng) {
+            return L.circleMarker(latlng, geojsonMarkerOptions);
+        }
+    }).addTo(map);
+};
 
 //function to retrieve the data and place it on the map
 function getData(map) {
@@ -35,27 +55,14 @@ function getData(map) {
     $.ajax("data/MegaCities.geojson", {
         dataType: "json",
         success: function(response){
-            //create marker options
-            var geojsonMarkerOptions = {
-                radius: 8,
-                fillColor: "#ff7800",
-                color: "#000",
-                weight: 1,
-                opacity: 1,
-                fillOpacity: 0.8
-            };
-            
-            //create a Leaflet GeoJSON Layer and add it to the map
-            L.geoJSON(response, {
-                //use filter function to only show cities with 2015 populations greater than 20 million
-                filter: function(feature, layer){
-                    return feature.properties.Pop_2015 > 20;
-                },
-                pointToLayer: function(feature, latlng){
-                    return L.circleMarker(latlng, geojsonMarkerOptions);
-                },
-                onEachFeature: onEachFeature
-            }).addTo(map);
+            //create a leaflet geojson layer
+            var geoJsonLayer = L.geoJson(response);
+            //create a L.markerClusterGroup layer
+            var markers = L.markerClusterGroup();
+            //add geojson to marker cluster layer
+            markers.addLayer(geoJsonLayer);
+            //add marker cluster layer to map
+            map.addLayer(markers);
         }
     });
 };

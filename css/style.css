@@ -1,4 +1,32 @@
 /* Stylesheet by Sam Grosenick, 2017 */
-html, body, #map {
-    height: 100%;
+#map {
+    height: 600px;
+    width: 100%;
+    display: inline-block;
+}
+
+#panel {
+    width: 16%;
+    display: inline-block;
+    vertical-align: top;
+    text-align: center;
+    background-color: #668099;
+    z-index: 99;
+    position: fixed;
+}
+
+.range-slider {
+    width: 40%;
+}
+
+#forward {
+    float: right;
+}
+
+#reverse{
+    float: left;
+}
+
+.leaflet-popup-content p {
+    margin: 0.2em 0;
 }

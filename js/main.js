@@ -218,17 +218,9 @@ function pointToLayer(feature, latlng, attributes) {
     //create circle maker layer
     var layer = L.circleMarker(latlng, options);
     
-    //create year label for popup
-    var year = attribute.split("_")[1];
+    var popup = new Popup(feature.properties, attribute, layer, options.radius);
     
-    //build popup content string
-    var popupContent = "<p><b>City:</b> " +feature.properties.city + "</p><p><b>Population over 65 in " + year + ": </b>" + feature.properties[attribute] + "%</p>";
-    
-    //bind the popup to the circle maker
-    layer.bindPopup(popupContent, {
-        offset: new L.Point(0,-options.radius),
-        closeButton: false
-    });
+    popup.bindToLayer();
     
     //event listeners to open popup on hover
     layer.on({
@@ -247,10 +239,25 @@ function pointToLayer(feature, latlng, attributes) {
     return layer;
 };
 
+function Popup(properties, attribute, layer, radius){
+    this.properties = properties;
+    this.attribute = attribute;
+    this.layer = layer;
+    this.year = attribute.split("_")[1];
+    this.percentage = this.properties[attribute];
+    this.content = "<p><b>City:</b> " + this.properties.city + "</p><p><b>Population over 65 in " + this.year + ":</b> " + this.percentage + "%</p>";
+    
+    this.bindToLayer = function(){
+        this.layer.bindPopup(this.content, {
+            offset: new L.Point(0, -radius)
+        });
+    };
+};
+
 function updateLegend(map, attribute) {
     //create content for legend
     var year = attribute.split("_")[1];
-    var content = "Percent Elderly in " + year;
+    var content = "Percent Pop. over 65 in " + year;
     
     //replace legend content
     $('#temporal-legend').html(content);
@@ -289,13 +296,10 @@ function createLegend(map, attributes) {
             var container = L.DomUtil.create('div', 'legend-control-container');
             
             //Add title to legend
-            $(container).append('<div id="legend-title">Old Age Dependancy Ratio</div>')
+            $(container).append('<div id="legend-title">Elderly Populations</div>')
             
             //add temporal legend div to container
             $(container).append('<div id="temporal-legend">');
-            
-            //create slider for changing scale of symbols
-            //$(container).append('<input class="range-slider" type="range">);
             
             //start attribute legend svg string
             var svg = '<svg id="attribute-legend" width="180px" height="120px">';
@@ -350,18 +354,9 @@ function updatePropSymbols(map, attribute) {
             var radius = calcPropRadius(props[attribute]);
             layer.setRadius(radius);
             
-            //add city to popup content string
-            var popupContent = "<p><b>City:</b> " + props.city + "</p>";
+            var popup = new Popup(props, attribute, layer, radius);
             
-            //add formatted attribute to panel content string
-            var year = attribute.split("_")[1];
-            popupContent += "<p><b>Population over 65 in " + year + ": </b>" + props[attribute] + "%</p>";
-            
-            //replace tthe layer popup
-            layer.bindPopup(popupContent, {
-                offset: new L.Point(0, -radius)
-            });
-            
+            popup.bindToLayer();    
         };
     
     });

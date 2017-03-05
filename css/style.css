@@ -8,8 +8,8 @@
 }
 
 .legend-control-container {
-    width: 150px;
-    height: 150px;
+    width: 200px;
+    height: 200px;
     background-color: rgba(255,255,255,0.8);
     padding: 10px;
     line-height: 45px;
@@ -17,18 +17,9 @@
     border: solid gray 1px;
 }
 
-.panel-wrapper {
-    position: fixed;
-    top: 0px;
-    right: 0px;
-    height: 200px;
-    width: 400px;
-    z-index: 99;
-}
-
 .sequence-control-container {
     width: 350px;
-    height: 60px;
+    height: 160px;
     background-color: rgba(255,255,255,0.8);
     padding: 10px;
     line-height: 45px;
@@ -58,4 +49,21 @@
 
 .leaflet-popup-content p {
     margin: 0.2em 0;
+}
+
+#legend-title {
+    font-weight: bold;
+    font-size: 14px;
+}
+
+#smaller {
+    float: left;
+}
+
+#larger {
+    float: right;
+}
+
+#scale-title, #sequence-title {
+    font-weight: bold;
 }

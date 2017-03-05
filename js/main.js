@@ -26,7 +26,20 @@ function createSequenceControls(map, attributes) {
             // create the control container div with a particular class name
             var container = L.DomUtil.create('div', 'sequence-control-container');
             
-            $(container).append('<button class="resymbol" id="alter" title="alter">Change Style</button>');
+            //create a title for the scale farctor bar
+            $(container).append('<div id="scale-title">Change Scale Factor</div>');
+            
+            //create a slider bar to change the scale factor of the symbols
+            $(container).append('<input class="scale-factor" type="range">');
+            
+            //add scale buttons
+            $(container).append('<button class="scale-button" id="smaller" title="Smaller">Smaller</button>');
+            $(container).append('<button class="scale-button" id="larger" title="Larger">Larger</button>');
+            
+            //$(container).append('<button class="resymbol" id="alter" title="alter">Change Style</button>');
+            
+            //create title for the slider that changes attribute
+            $(container).append('<div id="sequence-title">Change Year</div>')
             
             //create range input element
             $(container).append('<input class="range-slider" type="range">');
@@ -45,9 +58,53 @@ function createSequenceControls(map, attributes) {
     
     map.addControl(new SequenceControl());
     
-    //set slider attributes
+    //set attributes for scale slider
+    $('.scale-factor').attr({
+        max: 4,
+        min: 0,
+        value: 0,
+        step: 1
+    });
+    
+    //set listener for scale slider buttons
+    $('.scale-button').click(function(){
+        //get old value
+        var scaleindex = $('.scale-factor').val();
+        
+        //get the old index value
+        var index = $('.range-slider').val();
+        
+        //increment or decrement
+        if ($(this).attr('id') == 'smaller'){
+            scaleindex--;
+            //no setting to go 5 if already at 1
+            scaleindex = scaleindex < 0 ? 4 : scaleindex;
+        } else if ($(this).attr('id') == 'larger'){
+            scaleindex++;
+            //no setting to skip back to 1
+            scaleindex = scaleindex > 4 ? 0 : scaleindex;
+        };
+        
+        console.log(scaleindex);
+        
+        //update slider
+        $('.scale-factor').val(scaleindex);
+        //pass new attribute to update scale factor
+        console.log(attributes);
+        updatePropSymbolsScale(map, attributes[index]);
+    });
+    
+    $('.scale-factor').on('input', function(){
+        //get new index value
+        var scaleindex = $(this).val();
+        
+        //pass new attribute to update symobl
+        updatePropSymbolsScale(map, attributes[index]);
+    });
+    
+    //set attribute slider attributes
     $('.range-slider').attr({
-        max: 13,
+        max: 14,
         min: 0,
         value: 0,
         step: 1
@@ -76,12 +133,10 @@ function createSequenceControls(map, attributes) {
     });
     
     //click listener for changing the symbol
-    $('.resymbol').click(function(){
+  /*  $('.resymbol').click(function(){
         //show button as active
-        //$(this).toggleClass("active");
-        
-        
-        
+        $(this).toggleClass("active");
+    
         //get index value
         var index = $('.range-slider').val();
         
@@ -100,8 +155,7 @@ function createSequenceControls(map, attributes) {
         $('.range-slider').val(index);
         //pass new attributes to symbol
         updatePropSymbolsSmaller(map, attributes[index]);
-    });
-    
+    });*/
     
     $('.range-slider').on('input', function(){
         //get new index value
@@ -172,9 +226,16 @@ function calcPropRadius(attValue) {
     return radius;
 };
 
-function calcPropRadiusSmaller(attValue) {
+function calcPropRadiusScale(attValue) {
     //scale factor to adjust symbol size evenly
-    var scaleFactor = 25;
+    var scaleFactor = 50;
+    
+    //retrieves the value of the scale index slider
+    var scaleindex = $('.scale-factor').val();
+    
+    //changes the scale factor based on what the scale factor slider was set at
+    scaleFactor = 25 + attValue + (scaleindex * 20);
+    
     //area based on attribute value and scale factor
     var area = attValue * scaleFactor;
     //radius calculated based on area
@@ -231,8 +292,11 @@ function pointToLayer(feature, latlng, attributes) {
     //create circle maker layer
     var layer = L.circleMarker(latlng, options);
     
+    //create year label for popup
+    var year = attribute.split("_")[1];
+    
     //build popup content string
-    var popupContent = "<p><b>City:</b> " +feature.properties.city + "</p><p><b>" + attribute + ": </b>" + feature.properties[attribute] + "%</p>";
+    var popupContent = "<p><b>City:</b> " +feature.properties.city + "</p><p><b>Population over 65 in " + year + ": </b>" + feature.properties[attribute] + "%</p>";
     
     //bind the popup to the circle maker
     layer.bindPopup(popupContent, {
@@ -274,7 +338,7 @@ function pointToLayer(feature, latlng, attributes) {
 function updateLegend(map, attribute) {
     //create content for legend
     var year = attribute.split("_")[1];
-    var content = "Population in " + year;
+    var content = "Percent Elderly in " + year;
     
     //replace legend content
     $('#temporal-legend').html(content);
@@ -293,12 +357,12 @@ function updateLegend(map, attribute) {
         
         //assign the cy and r attributes
         $('#'+key).attr({
-            cy: 100 - radius,
+            cy: 85 - radius,
             r: radius
         });
         
         //add legend text
-        $('#'+key+'-text').text(Math.round(circleValues[key]*100)/100 + " million");
+        $('#'+key+'-text').text(Math.round(circleValues[key]*100)/100 + "%");
     };
 };
 
@@ -312,6 +376,9 @@ function createLegend(map, attributes) {
             //create the control conatainer witha particular class name
             var container = L.DomUtil.create('div', 'legend-control-container');
             
+            //Add title to legend
+            $(container).append('<div id="legend-title">Old Age Dependancy Ratio</div>')
+            
             //add temporal legend div to container
             $(container).append('<div id="temporal-legend">');
             
@@ -322,15 +389,19 @@ function createLegend(map, attributes) {
             var svg = '<svg id="attribute-legend" width="180px" height="120px">';
             
             //array of circle names to base loop on
-            var circles = ["max", "mean", "min"];
+            var circles = {
+                max: 40,
+                mean: 60,
+                min: 80
+            };
             
             //loop to add each circle and text to svg string
-            for (var i=0; i<circles.length; i++){
+            for (var circle in circles){
                 //circle string
-                svg += '<circle class="legend-circle" id="' + circles[i] + '" fill="#F47821" fill-opacity="0.8" stroke="#000000" cx="30"/>';
+                svg += '<circle class="legend-circle" id="' + circle + '" fill="#F47821" fill-opacity="0.8" stroke="#000000" cx="30"/>';
                 
                 //text string
-                svg += '<text id="' + circles[i] + '-text" x="65" y="100"></text>';
+                svg += '<text id="' + circle + '-text" x="85" y="' + circles[circle] + '"></text>';
             };
             
             //close svg string
@@ -372,7 +443,7 @@ function updatePropSymbols(map, attribute) {
             
             //add formatted attribute to panel content string
             var year = attribute.split("_")[1];
-            popupContent += "<p><b>Population in " + year + ":</b>" + props[attribute] + " million</p>";
+            popupContent += "<p><b>Population over 65 in " + year + ": </b>" + props[attribute] + "%</p>";
             
             //replace tthe layer popup
             layer.bindPopup(popupContent, {
@@ -385,14 +456,14 @@ function updatePropSymbols(map, attribute) {
     updateLegend(map, attribute);
 };
 
-function updatePropSymbolsSmaller(map, attribute) {
+function updatePropSymbolsScale(map, attribute) {
     map.eachLayer(function(layer){
         if (layer.feature && layer.feature.properties[attribute]){
             //access feature properties
             var props = layer.feature.properties;
             
             //update each feature's radius based on new attributes values
-            var radius = calcPropRadiusSmaller(props[attribute]);
+            var radius = calcPropRadiusScale(props[attribute]);
             layer.setRadius(radius);
             
             //add city to popup content string
@@ -400,7 +471,7 @@ function updatePropSymbolsSmaller(map, attribute) {
             
             //add formatted attribute to panel content string
             var year = attribute.split("_")[1];
-            popupContent += "<p><b>Population in " + year + ":</b>" + props[attribute] + " million</p>";
+            popupContent += "<p><b>Population over 65 in " + year + ": </b>" + props[attribute] + "%</p>";
             
             //replace tthe layer popup
             layer.bindPopup(popupContent, {
@@ -410,7 +481,6 @@ function updatePropSymbolsSmaller(map, attribute) {
         };
     
     });
-    updateLegend(map, attribute);
 };
 
 function getCircleValues(map, attribute) {

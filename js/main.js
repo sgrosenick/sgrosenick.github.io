@@ -68,7 +68,7 @@ function createSequenceControls(map, attributes) {
     
     //set listener for scale slider buttons
     $('.scale-button').click(function(){
-        //get old value
+        //get the current scale factor value
         var scaleindex = $('.scale-factor').val();
         
         //get the old index value
@@ -85,12 +85,10 @@ function createSequenceControls(map, attributes) {
             scaleindex = scaleindex > 4 ? 0 : scaleindex;
         };
         
-        console.log(scaleindex);
         
         //update slider
         $('.scale-factor').val(scaleindex);
-        //pass new attribute to update scale factor
-        console.log(attributes);
+        //pass the year selected on the 'Change Year' slide bar
         updatePropSymbolsScale(map, attributes[index]);
     });
     
@@ -141,58 +139,11 @@ function createSequenceControls(map, attributes) {
     });
 };
 
-//Create new slider sequence controls
-/*function createSequenceControls(map, attributes) {
-    //create range input element (slider)
-    $('#panel').append('<input class="range-slider" type="range">');
-    
-    //set slider attributes
-    $('.range-slider').attr({
-        max: 13,
-        min: 0,
-        value: 0,
-        step: 1
-    });
-    
-    $('#panel').append('<button class="skip" id="reverse">Reverse</button>');
-    $('#panel').append('<button class="skip" id="forward">Skip</button>');
-    
-    //click listener for buttons
-    $('.skip').click(function(){
-        //get the old index value
-        var index = $('.range-slider').val();
-        
-        //increment or decrement depending on button choice
-        if ($(this).attr('id') == 'forward'){
-            index++;
-            //if past the last attribute, wrap around to the first attribute
-            index = index > 6 ? 0 : index;
-        } else if ($(this).attr('id') == 'reverse'){
-            index--;
-            //if at the first attribute, wrap around to the last attribute
-            index = index < 0 ? 6 : index;
-        };
-        
-        //update slider
-        $('.range-slider').val(index);
-        //pass new attribute to update symbols
-        updatePropSymbols(map, attributes[index]);
-    });
-    
-    //input listener for slider
-    $('.range-slider').on('input', function(){
-        //get new index value
-        var index = $(this).val();
-        
-        //pass new attribute to update symbols
-        updatePropSymbols(map, attributes[index]);
-    });
-};*/
-
 //calculate the radius of each proportional symbol
 function calcPropRadius(attValue) {
     //scale factor to adjust symbol size evenly
     var scaleFactor = 50;
+    
     //area based on attribute value and scale factor
     var area = attValue * scaleFactor;
     //radius calculated based on area
@@ -251,7 +202,7 @@ function pointToLayer(feature, latlng, attributes) {
     
     //create marker options
     var options = {
-        fillColor: "#ff7800",
+        fillColor: "#4CCC6A",
         color: "#000",
         weight: 1,
         opacity: 1,
@@ -359,7 +310,7 @@ function createLegend(map, attributes) {
             //loop to add each circle and text to svg string
             for (var circle in circles){
                 //circle string
-                svg += '<circle class="legend-circle" id="' + circle + '" fill="#F47821" fill-opacity="0.8" stroke="#000000" cx="30"/>';
+                svg += '<circle class="legend-circle" id="' + circle + '" fill="#4CCC6A" fill-opacity="0.8" stroke="#000000" cx="30"/>';
                 
                 //text string
                 svg += '<text id="' + circle + '-text" x="85" y="' + circles[circle] + '"></text>';

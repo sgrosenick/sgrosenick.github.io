@@ -132,31 +132,6 @@ function createSequenceControls(map, attributes) {
         updatePropSymbols(map, attributes[index]);
     });
     
-    //click listener for changing the symbol
-  /*  $('.resymbol').click(function(){
-        //show button as active
-        $(this).toggleClass("active");
-    
-        //get index value
-        var index = $('.range-slider').val();
-        
-        //increment or decrement button
-        if ($(this).attr('id') == 'forward'){
-            index++;
-            //if past last attribute, wrap around
-            index = index > 14 ? 0 : index;
-        } else if ($(this).attr('id') == 'reverse'){
-            index--;
-            //if at the first attribute, wrap around
-            index = index < 0 ? 14 : index;
-        };
-        
-        //update slider
-        $('.range-slider').val(index);
-        //pass new attributes to symbol
-        updatePropSymbolsSmaller(map, attributes[index]);
-    });*/
-    
     $('.range-slider').on('input', function(){
         //get new index value
         var index = $(this).val();
@@ -320,20 +295,6 @@ function pointToLayer(feature, latlng, attributes) {
     //return the circle maker to the L.geoJson pointToLayer option
     return layer;
 };
-
-/*function createPopup(properties, attribute, layer, radius) {
-    //add city to popup content string
-    var popupContent = "<p><b>City:</b> " + properties.city + "</p>";
-    
-    //add formatted attribute to panel content string
-    var year = attribute.split("_")[1];
-    popupContent += "<p><b>Population in " + year + ":</b> " + properties[attribute] + " million</p>";
-    
-    //replace the layer popup
-    layer.bindPopup(popupContent, {
-        offset: new L.Point(0, -radius)
-    });
-};*/
 
 function updateLegend(map, attribute) {
     //create content for legend

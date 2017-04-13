@@ -3,7 +3,7 @@ function createMap() {
     //creates the map
     var myMap = L.map('map', {
         center: [20, 0],
-        zoom: 2
+        zoom: 2.3
     });
     
     //Add OSM basemap
@@ -36,8 +36,6 @@ function createSequenceControls(map, attributes) {
             $(container).append('<button class="scale-button" id="smaller" title="Smaller">Smaller</button>');
             $(container).append('<button class="scale-button" id="larger" title="Larger">Larger</button>');
             
-            //$(container).append('<button class="resymbol" id="alter" title="alter">Change Style</button>');
-            
             //create title for the slider that changes attribute
             $(container).append('<div id="sequence-title">Change Year</div>')
             
@@ -48,6 +46,7 @@ function createSequenceControls(map, attributes) {
             $(container).append('<button class="skip" id="reverse" title="Reverse">Reverse</button>');
             $(container).append('<button class="skip" id="forward" title="Forward">Skip</button>');
             
+            //kill any mouse event listeners on map
             $(container).on('mousedown dblclick', function(e){
                 L.DomEvent.stopPropagation(e);
             });
@@ -83,8 +82,7 @@ function createSequenceControls(map, attributes) {
             scaleindex++;
             //no setting to skip back to 1
             scaleindex = scaleindex > 4 ? 0 : scaleindex;
-        };
-        
+        }; 
         
         //update slider
         $('.scale-factor').val(scaleindex);
@@ -113,6 +111,9 @@ function createSequenceControls(map, attributes) {
         //get the old index value
         var index = $('.range-slider').val();
         
+        //get current scale value
+        var scaleindex = $('.scale-factor').val();
+        
         //increment or decrement depending on button choice
         if ($(this).attr('id') == 'forward'){
             index++;
@@ -127,7 +128,7 @@ function createSequenceControls(map, attributes) {
         //update slider
         $('.range-slider').val(index);
         //pass new attribute to update symbols
-        updatePropSymbols(map, attributes[index]);
+        updatePropSymbolsScale(map, attributes[index]);
     });
     
     $('.range-slider').on('input', function(){
@@ -135,7 +136,7 @@ function createSequenceControls(map, attributes) {
         var index = $(this).val();
         
         //pass new attribute to update symbols
-        updatePropSymbols(map, attributes[index]);
+        updatePropSymbolsScale(map, attributes[index]);
     });
 };
 
@@ -159,8 +160,14 @@ function calcPropRadiusScale(attValue) {
     //retrieves the value of the scale index slider
     var scaleindex = $('.scale-factor').val();
     
+    if (typeof scaleindex === 'undefined'){
+        var scaleindex = 0;
+    } else {
+        var scaleindex = $('.scale-factor').val();
+    };
+    
     //changes the scale factor based on what the scale factor slider was set at
-    scaleFactor = 25 + attValue + (scaleindex * 20);
+    var scaleFactor = (25 + attValue) + (scaleindex * 20);
     
     //area based on attribute value and scale factor
     var area = attValue * scaleFactor;
@@ -197,9 +204,6 @@ function pointToLayer(feature, latlng, attributes) {
     //assign the current attribute based on the first index of the attributes array
     var attribute = attributes[0];
     
-    //check
-    console.log(attribute);
-    
     //create marker options
     var options = {
         fillColor: "#4CCC6A",
@@ -213,8 +217,9 @@ function pointToLayer(feature, latlng, attributes) {
     var attValue = Number(feature.properties[attribute]);
     
     //give each feature's circle marker a radius based on its attribute value
-    options.radius = calcPropRadius(attValue);
+    options.radius = calcPropRadiusScale(attValue);
     
+    console.log("The radius " + options.radius);
     //create circle maker layer
     var layer = L.circleMarker(latlng, options);
     
@@ -344,25 +349,6 @@ function createPropSymbols(data, map, attributes) {
     }).addTo(map);
 };
 
-function updatePropSymbols(map, attribute) {
-    map.eachLayer(function(layer){
-        if (layer.feature && layer.feature.properties[attribute]){
-            //access feature properties
-            var props = layer.feature.properties;
-            
-            //update each feature's radius based on new attributes values
-            var radius = calcPropRadius(props[attribute]);
-            layer.setRadius(radius);
-            
-            var popup = new Popup(props, attribute, layer, radius);
-            
-            popup.bindToLayer();    
-        };
-    
-    });
-    updateLegend(map, attribute);
-};
-
 function updatePropSymbolsScale(map, attribute) {
     map.eachLayer(function(layer){
         if (layer.feature && layer.feature.properties[attribute]){
@@ -376,18 +362,12 @@ function updatePropSymbolsScale(map, attribute) {
             //add city to popup content string
             var popupContent = "<p><b>City:</b> " + props.city + "</p>";
             
-            //add formatted attribute to panel content string
-            var year = attribute.split("_")[1];
-            popupContent += "<p><b>Population over 65 in " + year + ": </b>" + props[attribute] + "%</p>";
+            var popup = new Popup(props, attribute, layer, radius);
             
-            //replace tthe layer popup
-            layer.bindPopup(popupContent, {
-                offset: new L.Point(0, -radius)
-            });
-            
+            popup.bindToLayer();
         };
-    
     });
+    updateLegend(map, attribute);
 };
 
 function getCircleValues(map, attribute) {
